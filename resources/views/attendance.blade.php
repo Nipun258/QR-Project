@@ -243,51 +243,15 @@
             100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.8); }
         }
 
+        /* Scanner input is fully invisible — off-screen capture only */
         .scanner-input {
-            width: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            border: 2px solid rgba(99, 102, 241, 0.6);
-            border-radius: 10px;
-            color: #a5b4fc;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.05rem;
-            font-weight: 600;
-            padding: 0.75rem 1rem;
-            text-align: center;
-            letter-spacing: 0.08em;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            caret-color: #6366f1;
-            margin-top: 0.75rem;
-        }
-
-        .scanner-input:focus {
-            border-color: var(--primary-indigo);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
-        }
-
-        .scanner-input::placeholder {
-            color: rgba(156, 163, 175, 0.5);
-            font-weight: 400;
-            letter-spacing: 0.03em;
-        }
-
-        .scan-input-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            font-weight: 600;
-            margin-top: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .scan-char-count {
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--primary-indigo);
-            font-size: 0.7rem;
+            position: fixed;
+            top: -9999px;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
         }
 
         .scanner-status-text {
@@ -625,19 +589,16 @@
                     <div class="scanner-status-text">SCAN CARD NOW</div>
                     <div class="scanner-sub-text">Point QR / barcode scanner here &mdash; auto-submits instantly on scan.</div>
 
-                    <!-- Scanner input: value hidden, auto-submits after scan pause -->
+                    <!-- Scanner input: completely invisible, always-focused, captures hardware scanner output -->
                     <form id="scan-form" onsubmit="return false;">
-                        <div class="scan-input-label">
-                            <span><i class="fa-solid fa-shield-halved" style="margin-right:0.35rem;"></i> Scanner Input (hidden)</span>
-                            <span class="scan-char-count" id="char-count">0 chars</span>
-                        </div>
-                        <input type="password"
+                        <input type="text"
                                id="scanner-input"
                                class="scanner-input"
                                autocomplete="off"
                                autofocus
                                spellcheck="false"
-                               placeholder="&bull;&bull;&bull; Waiting for scan &bull;&bull;&bull;">
+                               tabindex="-1"
+                               aria-hidden="true">
                     </form>
                 </div>
 
@@ -872,7 +833,6 @@
 
         scannerInput.addEventListener('input', function () {
             const len = this.value.length;
-            document.getElementById('char-count').innerText = len + ' char' + (len !== 1 ? 's' : '');
 
             // Reset debounce timer on every keystroke
             if (debounceTimer) clearTimeout(debounceTimer);
@@ -903,7 +863,6 @@
 
         function clearScanInput() {
             scannerInput.value = '';
-            document.getElementById('char-count').innerText = '0 chars';
         }
 
         // Simulator button helper
