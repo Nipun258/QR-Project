@@ -18,7 +18,7 @@ class AttendanceController extends Controller
         $students = Student::all();
         $recentAttendances = Attendance::with('student')
             ->orderBy('created_at', 'desc')
-            ->take(15)
+            //->take(15)
             ->get();
 
         $stats = [
@@ -42,23 +42,23 @@ class AttendanceController extends Controller
         ]);
 
         // Normalize raw scanned value before DB lookup
-        $rawValue        = $request->input('register_number');
-        $registerNumber  = $this->normalizeRegisterNumber($rawValue);
+        $rawValue = $request->input('register_number');
+        $registerNumber = $this->normalizeRegisterNumber($rawValue);
 
         // Check Eligibility API logic
         $student = Student::where('register_number', $registerNumber)->first();
 
         if (!$student) {
             return response()->json([
-                'success'           => false,
-                'eligible'          => false,
-                'status'            => 'NOT_FOUND',
-                'title'             => 'User Not Found',
-                'message'           => "Register Number [{$registerNumber}] is not registered in system.",
-                'raw_value'         => $rawValue,
-                'register_number'   => $registerNumber,
-                'student'           => null,
-                'timestamp'         => now()->format('h:i:s A'),
+                'success' => false,
+                'eligible' => false,
+                'status' => 'NOT_FOUND',
+                'title' => 'User Not Found',
+                'message' => "Register Number [{$registerNumber}] is not registered in system.",
+                'raw_value' => $rawValue,
+                'register_number' => $registerNumber,
+                'student' => null,
+                'timestamp' => now()->format('h:i:s A'),
             ], 404);
         }
 
@@ -73,22 +73,50 @@ class AttendanceController extends Controller
             ]);
 
             return response()->json([
-                'success'           => false,
-                'eligible'          => false,
-                'status'            => 'INACTIVE',
-                'title'             => 'User Not Active',
-                'message'           => "{$student->name} ({$student->register_number}) status is INACTIVE.",
-                'raw_value'         => $rawValue,
-                'register_number'   => $student->register_number,
-                'student'           => [
-                    'id'              => $student->id,
-                    'name'            => $student->name,
-                    'department'      => $student->department,
-                    'email'           => $student->email,
+                'success' => false,
+                'eligible' => false,
+                'status' => 'INACTIVE',
+                'title' => 'User Not Active',
+                'message' => "{$student->name} ({$student->register_number}) status is INACTIVE.",
+                'raw_value' => $rawValue,
+                'register_number' => $student->register_number,
+                'student' => [
+                    'id' => $student->id,
+                    'name' => $student->name,
+                    'department' => $student->department,
+                    'email' => $student->email,
                     'register_number' => $student->register_number,
-                    'avatar_color'    => $student->avatar_color,
+                    'avatar_color' => $student->avatar_color,
                 ],
-                'timestamp'         => now()->format('h:i:s A'),
+                'timestamp' => now()->format('h:i:s A'),
+            ], 200);
+        }
+
+        // Check if student already scanned within the last 1 minute (duplicate guard)
+        $existingToday = Attendance::where('student_id', $student->id)
+            ->where('status', 'PRESENT')
+            ->where('scanned_at', '>=', now()->subMinute())
+            ->first();
+
+        if ($existingToday) {
+            return response()->json([
+                'success' => true,
+                'eligible' => true,
+                'status' => 'ALREADY_SCANNED',
+                'title' => 'Already Checked In',
+                'message' => "{$student->name} already marked present today at {$existingToday->scanned_at->format('h:i:s A')}.",
+                'raw_value' => $rawValue,
+                'register_number' => $student->register_number,
+                'scanned_at' => $existingToday->scanned_at->format('h:i:s A'),
+                'student' => [
+                    'id' => $student->id,
+                    'name' => $student->name,
+                    'department' => $student->department,
+                    'email' => $student->email,
+                    'register_number' => $student->register_number,
+                    'avatar_color' => $student->avatar_color,
+                ],
+                'timestamp' => now()->format('h:i:s A'),
             ], 200);
         }
 
@@ -102,23 +130,23 @@ class AttendanceController extends Controller
         ]);
 
         return response()->json([
-            'success'           => true,
-            'eligible'          => true,
-            'status'            => 'ACTIVE',
-            'title'             => 'User Active',
-            'message'           => "Welcome {$student->name}! Attendance recorded.",
-            'raw_value'         => $rawValue,
-            'register_number'   => $student->register_number,
-            'scanned_at'        => $attendance->scanned_at->format('h:i:s A'),
-            'student'           => [
-                'id'              => $student->id,
-                'name'            => $student->name,
-                'department'      => $student->department,
-                'email'           => $student->email,
+            'success' => true,
+            'eligible' => true,
+            'status' => 'ACTIVE',
+            'title' => 'User Active',
+            'message' => "Welcome {$student->name}! Attendance recorded.",
+            'raw_value' => $rawValue,
+            'register_number' => $student->register_number,
+            'scanned_at' => $attendance->scanned_at->format('h:i:s A'),
+            'student' => [
+                'id' => $student->id,
+                'name' => $student->name,
+                'department' => $student->department,
+                'email' => $student->email,
                 'register_number' => $student->register_number,
-                'avatar_color'    => $student->avatar_color,
+                'avatar_color' => $student->avatar_color,
             ],
-            'timestamp'         => now()->format('h:i:s A'),
+            'timestamp' => now()->format('h:i:s A'),
         ], 200);
     }
 
@@ -181,5 +209,104 @@ class AttendanceController extends Controller
             'logs' => $logs,
             'stats' => $stats,
         ]);
+    }
+
+    /**
+     * Download attendance report as CSV for a given date (defaults to today).
+     */
+    public function report(Request $request)
+    {
+        $date = $request->query('date', now()->toDateString());
+
+        // Validate date format
+        try {
+            $reportDate = \Carbon\Carbon::createFromFormat('Y-m-d', $date);
+        } catch (\Exception $e) {
+            $reportDate = now();
+        }
+
+        $records = Attendance::with('student')
+            ->whereDate('scanned_at', $reportDate->toDateString())
+            ->orderBy('scanned_at', 'asc')
+            ->get();
+
+        $filename = 'attendance_report_' . $reportDate->format('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+        ];
+
+        $callback = function () use ($records, $reportDate) {
+            $handle = fopen('php://output', 'w');
+
+            // Report title row
+            fputcsv($handle, ['Attendance Report — ' . $reportDate->format('l, d F Y')]);
+            fputcsv($handle, ['Generated at: ' . now()->format('d/m/Y h:i:s A')]);
+            fputcsv($handle, []); // blank row
+
+            // Header columns
+            fputcsv($handle, ['#', 'Time', 'Register Number', 'Student Name', 'Department', 'Status', 'Remarks']);
+
+            $i = 1;
+            foreach ($records as $record) {
+                fputcsv($handle, [
+                    $i++,
+                    $record->scanned_at->format('h:i:s A'),
+                    $record->register_number,
+                    $record->student ? $record->student->name : 'Unknown',
+                    $record->student ? $record->student->department : 'N/A',
+                    $record->status,
+                    $record->remarks ?? '',
+                ]);
+            }
+
+            // Summary rows
+            $presentCount = $records->where('status', 'PRESENT')->count();
+            $rejectedCount = $records->where('status', 'REJECTED')->count();
+            fputcsv($handle, []);
+            fputcsv($handle, ['', '', '', '', 'Total PRESENT:', $presentCount]);
+            fputcsv($handle, ['', '', '', '', 'Total REJECTED:', $rejectedCount]);
+            fputcsv($handle, ['', '', '', '', 'Total Scans:', $records->count()]);
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Download attendance report as a styled PDF for a given date (defaults to today).
+     */
+    public function reportPdf(Request $request)
+    {
+        $date = $request->query('date', now()->toDateString());
+
+        try {
+            $reportDate = \Carbon\Carbon::createFromFormat('Y-m-d', $date);
+        } catch (\Exception $e) {
+            $reportDate = now();
+        }
+
+        $records = Attendance::with('student')
+            ->whereDate('scanned_at', $reportDate->toDateString())
+            ->orderBy('scanned_at', 'asc')
+            ->get();
+
+        $presentCount = $records->where('status', 'PRESENT')->count();
+        $rejectedCount = $records->where('status', 'REJECTED')->count();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.attendance_pdf', [
+            'records' => $records,
+            'reportDate' => $reportDate,
+            'presentCount' => $presentCount,
+            'rejectedCount' => $rejectedCount,
+            'generatedAt' => now()->format('d/m/Y h:i:s A'),
+        ])->setPaper('a4', 'portrait');
+
+        $filename = 'attendance_report_' . $reportDate->format('Y-m-d') . '.pdf';
+
+        return $pdf->download($filename);
     }
 }

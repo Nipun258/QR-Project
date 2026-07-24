@@ -9,3 +9,7 @@ Route::get('/', [AttendanceController::class, 'index'])->name('attendance.index'
 // API routes for automated scanner
 Route::post('/api/scan', [AttendanceController::class, 'scan'])->name('attendance.scan');
 Route::get('/api/logs', [AttendanceController::class, 'logs'])->name('attendance.logs');
+
+// Attendance Report Downloads (CSV + PDF)
+Route::get('/report/download', [AttendanceController::class, 'report'])->name('attendance.report');
+Route::get('/report/download-pdf', [AttendanceController::class, 'reportPdf'])->name('attendance.report.pdf');

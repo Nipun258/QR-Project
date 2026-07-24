@@ -31,6 +31,10 @@
             --error-bg: rgba(239, 68, 68, 0.15);
             --error-border: rgba(239, 68, 68, 0.4);
 
+            --info-color: #38bdf8;
+            --info-bg: rgba(56, 189, 248, 0.12);
+            --info-border: rgba(56, 189, 248, 0.4);
+
             --primary-indigo: #6366f1;
         }
 
@@ -303,6 +307,20 @@
             border: 2px solid var(--error-color);
             box-shadow: 0 0 40px rgba(239, 68, 68, 0.25);
             animation: shake 0.4s ease;
+        }
+
+        /* Duplicate / Already Scanned State */
+        .result-card.duplicate {
+            background: var(--info-bg);
+            border: 2px solid var(--info-color);
+            box-shadow: 0 0 40px rgba(56, 189, 248, 0.2);
+            animation: bounceIn 0.4s ease;
+        }
+
+        .result-card.duplicate .result-status-badge {
+            background: var(--info-color);
+            color: #000000;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
         }
 
         @keyframes bounceIn {
@@ -626,6 +644,23 @@
                         </div>
                     </div>
 
+                    <div id="result-duplicate-view" style="display: none; width: 100%;">
+                        <div class="result-status-badge">
+                            <i class="fa-solid fa-clock-rotate-left"></i> ALREADY CHECKED IN
+                        </div>
+                        <p style="color: var(--info-color); font-weight: 600; margin-bottom: 0.5rem;" id="duplicate-msg">Already marked present today.</p>
+                        <p style="font-size:0.75rem; color: var(--text-muted); margin-bottom:0.5rem; font-family:'JetBrains Mono',monospace;" id="duplicate-time"></p>
+
+                        <div class="student-profile">
+                            <div class="student-avatar" id="duplicate-avatar" style="background: var(--info-color); color:#000;">AJ</div>
+                            <div class="student-info">
+                                <div class="student-name" id="duplicate-name">Student Name</div>
+                                <div class="student-reg" id="duplicate-reg">Reg No</div>
+                                <div class="student-dept" id="duplicate-dept">Department</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="result-inactive-view" style="display: none; width: 100%;">
                         <div class="result-status-badge">
                             <i class="fa-solid fa-circle-xmark"></i> USER NOT ACTIVE
@@ -644,41 +679,13 @@
                     </div>
                 </div>
 
-                <!-- Fast Test Simulator Panel -->
-                <div class="simulator-box">
-                    <div class="simulator-title">
-                        <i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> Quick Test Scanner Simulator (Click to test scan)
-                    </div>
-                    <div class="sim-btn-group">
-                        <button class="sim-btn" onclick="simulateScan('500')">
-                            <i class="fa-solid fa-user-check" style="color: var(--success-color);"></i> 500 — Alex Johnson
-                        </button>
-                        <button class="sim-btn" onclick="simulateScan('501')">
-                            <i class="fa-solid fa-user-check" style="color: var(--success-color);"></i> 501 — Sophia Martinez
-                        </button>
-                        <button class="sim-btn" onclick="simulateScan('503')">
-                            <i class="fa-solid fa-user-check" style="color: var(--success-color);"></i> 503 — David Chen
-                        </button>
-                        <button class="sim-btn" onclick="simulateScan('504')">
-                            <i class="fa-solid fa-user-check" style="color: var(--success-color);"></i> 504 — Emma Watson
-                        </button>
-                        <button class="sim-btn inactive-btn" onclick="simulateScan('505')">
-                            <i class="fa-solid fa-user-xmark" style="color: var(--error-color);"></i> 505 — Michael (Inactive)
-                        </button>
-                        <button class="sim-btn inactive-btn" onclick="simulateScan('507')">
-                            <i class="fa-solid fa-user-xmark" style="color: var(--error-color);"></i> 507 &mdash; Sarah (Inactive)
-                        </button>
-                        <button class="sim-btn inactive-btn" onclick="simulateScan('INVALID99')">
-                            <i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i> Unknown ID
-                        </button>
-                    </div>
-                </div>
+
             </div>
         </div>
 
         <!-- Right Column: Live Attendance Log Feed -->
         <div>
-            <div class="glass-card" style="height: 100%;">
+            <div class="glass-card" style="height: 100%; display: flex; flex-direction: column;">
                 <div class="card-header">
                     <div class="card-title">
                         <i class="fa-solid fa-clock-rotate-left"></i> Live Attendance Feed
@@ -688,7 +695,30 @@
                     </button>
                 </div>
 
-                <div class="table-wrap">
+                <!-- Date Banner -->
+                <div style="
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                    background: rgba(99, 102, 241, 0.08);
+                    border: 1px solid rgba(99, 102, 241, 0.2);
+                    border-radius: 12px;
+                    padding: 0.75rem 1rem;
+                    margin-bottom: 1rem;
+                ">
+                    <i class="fa-solid fa-calendar-day" style="color: var(--primary-indigo); font-size: 1.1rem;"></i>
+                    <div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;">Showing Records For</div>
+                        <div style="font-size: 1rem; font-weight: 700; color: #ffffff;" id="feed-date-display">
+                            {{ now()->format('l, d F Y') }}
+                        </div>
+                    </div>
+                    <div style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--primary-indigo); font-weight: 600;" id="feed-record-count">
+                        {{ $recentAttendances->count() }} record(s)
+                    </div>
+                </div>
+
+                <div class="table-wrap" style="flex: 1;">
                     <table>
                         <thead>
                             <tr>
@@ -727,8 +757,103 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Report Generation Panel -->
+                <div style="
+                    margin-top: 1.25rem;
+                    padding-top: 1.25rem;
+                    border-top: 1px solid var(--border-color);
+                ">
+                    <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fa-solid fa-file-arrow-down" style="color: #a78bfa;"></i>
+                        GENERATE ATTENDANCE REPORT
+                    </div>
+                    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 160px;">
+                            <label style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.35rem;">Select Date</label>
+                            <input
+                                type="date"
+                                id="report-date-picker"
+                                value="{{ now()->toDateString() }}"
+                                max="{{ now()->toDateString() }}"
+                                style="
+                                    width: 100%;
+                                    background: rgba(0,0,0,0.4);
+                                    border: 1px solid rgba(167, 139, 250, 0.3);
+                                    border-radius: 8px;
+                                    color: #e2e8f0;
+                                    padding: 0.5rem 0.75rem;
+                                    font-size: 0.875rem;
+                                    font-family: 'JetBrains Mono', monospace;
+                                    outline: none;
+                                    cursor: pointer;
+                                    color-scheme: dark;
+                                "
+                                onfocus="this.style.borderColor='#a78bfa'"
+                                onblur="this.style.borderColor='rgba(167,139,250,0.3)'"
+                            >
+                        </div>
+                        <div style="padding-top: 1.35rem;">
+                            <button
+                                id="download-report-btn"
+                                onclick="downloadReport()"
+                                style="
+                                    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+                                    border: none;
+                                    color: white;
+                                    padding: 0.5rem 1.1rem;
+                                    border-radius: 8px;
+                                    font-size: 0.85rem;
+                                    font-weight: 700;
+                                    cursor: pointer;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 0.5rem;
+                                    white-space: nowrap;
+                                    transition: opacity 0.2s, transform 0.15s;
+                                    box-shadow: 0 0 16px rgba(124, 58, 237, 0.35);
+                                "
+                                onmouseover="this.style.opacity='0.88'; this.style.transform='translateY(-1px)'"
+                                onmouseout="this.style.opacity='1'; this.style.transform='translateY(0)'"
+                            >
+                                <i class="fa-solid fa-file-csv"></i> Download CSV
+                            </button>
+                        </div>
+                        <div style="padding-top: 1.35rem;">
+                            <button
+                                id="download-pdf-btn"
+                                onclick="downloadReportPdf()"
+                                style="
+                                    background: linear-gradient(135deg, #dc2626, #b91c1c);
+                                    border: none;
+                                    color: white;
+                                    padding: 0.5rem 1.1rem;
+                                    border-radius: 8px;
+                                    font-size: 0.85rem;
+                                    font-weight: 700;
+                                    cursor: pointer;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 0.5rem;
+                                    white-space: nowrap;
+                                    transition: opacity 0.2s, transform 0.15s;
+                                    box-shadow: 0 0 16px rgba(220, 38, 38, 0.35);
+                                "
+                                onmouseover="this.style.opacity='0.88'; this.style.transform='translateY(-1px)'"
+                                onmouseout="this.style.opacity='1'; this.style.transform='translateY(0)'"
+                            >
+                                <i class="fa-solid fa-file-pdf"></i> Download PDF
+                            </button>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.5rem;">
+                        <i class="fa-solid fa-circle-info" style="margin-right:0.3rem;"></i>
+                        Downloads all scan records (PRESENT &amp; REJECTED) for the selected date as CSV or PDF.
+                    </p>
+                </div>
             </div>
         </div>
+
 
     </div>
 
@@ -741,6 +866,7 @@
         
         const resultIdleView = document.getElementById('result-idle-view');
         const resultActiveView = document.getElementById('result-active-view');
+        const resultDuplicateView = document.getElementById('result-duplicate-view');
         const resultInactiveView = document.getElementById('result-inactive-view');
 
         let isProcessing = false;
@@ -751,6 +877,30 @@
 
         // Web Audio API Synthesizer Sound Effects
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playDuplicateSound() {
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime);      // A4
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime + 0.12);
+                osc.frequency.setValueAtTime(0,   audioCtx.currentTime + 0.18);
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime + 0.25); // second beep
+
+                gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } catch (e) {
+                console.log('Audio error');
+            }
+        }
 
         function playSuccessSound() {
             try {
@@ -895,6 +1045,7 @@
             `;
             resultIdleView.style.display = 'block';
             resultActiveView.style.display = 'none';
+            resultDuplicateView.style.display = 'none';
             resultInactiveView.style.display = 'none';
 
             try {
@@ -910,7 +1061,9 @@
 
                 const data = await response.json();
 
-                if (data.eligible && data.success) {
+                if (data.status === 'ALREADY_SCANNED') {
+                    renderAlreadyScanned(data);
+                } else if (data.eligible && data.success) {
                     renderActiveSuccess(data);
                 } else {
                     renderInactiveFailure(data);
@@ -947,6 +1100,7 @@
             resultCard.className = 'result-card active';
             
             resultIdleView.style.display = 'none';
+            resultDuplicateView.style.display = 'none';
             resultInactiveView.style.display = 'none';
             resultActiveView.style.display = 'block';
 
@@ -970,12 +1124,37 @@
             avatarEl.style.backgroundColor = data.student.avatar_color || '#10b981';
         }
 
+        function renderAlreadyScanned(data) {
+            playDuplicateSound();
+            resultCard.className = 'result-card duplicate';
+
+            resultIdleView.style.display = 'none';
+            resultActiveView.style.display = 'none';
+            resultInactiveView.style.display = 'none';
+            resultDuplicateView.style.display = 'block';
+
+            document.getElementById('duplicate-msg').innerText = data.message;
+            document.getElementById('duplicate-time').innerHTML =
+                `<i class="fa-solid fa-clock" style="margin-right:0.35rem;"></i>First check-in at: ${data.scanned_at}`;
+
+            document.getElementById('duplicate-name').innerText = data.student.name;
+            document.getElementById('duplicate-reg').innerText = data.student.register_number;
+            document.getElementById('duplicate-dept').innerText = data.student.department;
+
+            const initials = data.student.name.split(' ').map(n => n[0]).join('').substring(0, 2);
+            const avatarEl = document.getElementById('duplicate-avatar');
+            avatarEl.innerText = initials;
+            avatarEl.style.backgroundColor = 'var(--info-color)';
+            avatarEl.style.color = '#000';
+        }
+
         function renderInactiveFailure(data) {
             playFailureSound();
             resultCard.className = 'result-card inactive';
 
             resultIdleView.style.display = 'none';
             resultActiveView.style.display = 'none';
+            resultDuplicateView.style.display = 'none';
             resultInactiveView.style.display = 'block';
 
             document.getElementById('inactive-msg').innerText = data.message;
@@ -1018,6 +1197,7 @@
             `;
             resultIdleView.style.display = 'block';
             resultActiveView.style.display = 'none';
+            resultDuplicateView.style.display = 'none';
             resultInactiveView.style.display = 'none';
         }
 
@@ -1051,11 +1231,65 @@
                             </td>
                         </tr>
                     `).join('');
+
+                    // Update record count in date banner
+                    document.getElementById('feed-record-count').innerText = data.logs.length + ' record(s)';
                 }
             } catch (e) {
                 console.log('Error refreshing logs:', e);
             }
         }
+
+        function downloadReport() {
+            const date = document.getElementById('report-date-picker').value;
+            if (!date) {
+                alert('Please select a date first.');
+                return;
+            }
+            const btn = document.getElementById('download-report-btn');
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+            btn.disabled = true;
+
+            // Open as a download link
+            const link = document.createElement('a');
+            link.href = `/report/download?date=${date}`;
+            link.download = `attendance_report_${date}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Restore button after short delay
+            setTimeout(() => {
+                btn.innerHTML = origHtml;
+                btn.disabled = false;
+            }, 1500);
+        }
+
+        function downloadReportPdf() {
+            const date = document.getElementById('report-date-picker').value;
+            if (!date) {
+                alert('Please select a date first.');
+                return;
+            }
+            const btn = document.getElementById('download-pdf-btn');
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+            btn.disabled = true;
+
+            const link = document.createElement('a');
+            link.href = `/report/download-pdf?date=${date}`;
+            link.download = `attendance_report_${date}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            setTimeout(() => {
+                btn.innerHTML = origHtml;
+                btn.disabled = false;
+            }, 2500);
+        }
+
     </script>
 </body>
 </html>
