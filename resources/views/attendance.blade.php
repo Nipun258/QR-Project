@@ -548,6 +548,209 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        /* Scan Card Button */
+        .scan-card-btn {
+            width: 100%;
+            margin-top: 1rem;
+            padding: 0.85rem 1.5rem;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            border: none;
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            transition: all 0.25s ease;
+            box-shadow: 0 0 24px rgba(99, 102, 241, 0.45);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scan-card-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+            border-radius: 12px;
+        }
+
+        .scan-card-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 36px rgba(99, 102, 241, 0.65);
+            background: linear-gradient(135deg, #7c7ff5 0%, #6366f1 100%);
+        }
+
+        .scan-card-btn:active {
+            transform: translateY(0);
+        }
+
+        .scan-card-btn i {
+            font-size: 1.1rem;
+        }
+
+        /* Camera Scanner Modal */
+        .cam-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 8, 20, 0.92);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .cam-modal-overlay.open {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        .cam-modal {
+            background: rgba(17, 24, 39, 0.95);
+            border: 1px solid rgba(99, 102, 241, 0.35);
+            border-radius: 24px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 0 60px rgba(99, 102, 241, 0.3), 0 24px 64px rgba(0,0,0,0.6);
+            position: relative;
+            animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+
+        .cam-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+
+        .cam-modal-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .cam-modal-title i {
+            color: var(--primary-indigo);
+        }
+
+        .cam-close-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .cam-close-btn:hover {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: rgba(239,68,68,0.4);
+            color: #ef4444;
+        }
+
+        .cam-viewport-wrap {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #000;
+            border: 2px solid rgba(99, 102, 241, 0.4);
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+        }
+
+        #cam-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        #cam-canvas { display: none; }
+
+        /* Animated scan-line overlay */
+        .cam-scanline {
+            position: absolute;
+            left: 8%;
+            right: 8%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #6366f1, #a5b4fc, #6366f1, transparent);
+            border-radius: 9999px;
+            box-shadow: 0 0 10px rgba(99,102,241,0.9);
+            animation: scanline 2s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scanline {
+            0%   { top: 10%; opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 1; }
+            100% { top: 90%; opacity: 0; }
+        }
+
+        /* Corner brackets */
+        .cam-corner {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border-color: #6366f1;
+            border-style: solid;
+            pointer-events: none;
+        }
+        .cam-corner.tl { top: 12px; left: 12px; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+        .cam-corner.tr { top: 12px; right: 12px; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+        .cam-corner.bl { bottom: 12px; left: 12px; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+        .cam-corner.br { bottom: 12px; right: 12px; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+
+        .cam-status {
+            margin-top: 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            min-height: 1.4em;
+            font-weight: 500;
+        }
+
+        .cam-status.scanning { color: var(--primary-indigo); }
+        .cam-status.success  { color: var(--success-color); font-weight: 700; }
+        .cam-status.error    { color: var(--error-color);   font-weight: 700; }
+
+        .cam-tip {
+            margin-top: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: center;
+            font-size: 0.78rem;
+            color: rgba(156,163,175,0.7);
+        }
     </style>
 </head>
 <body>
@@ -619,6 +822,12 @@
                                aria-hidden="true">
                     </form>
                 </div>
+
+                <!-- Scan Card Button -->
+                <button class="scan-card-btn" id="open-cam-scanner-btn" onclick="openCameraScanner()">
+                    <i class="fa-solid fa-camera"></i>
+                    Scan Card (Camera)
+                </button>
 
                 <!-- Result Status Display Area -->
                 <div class="result-card idle" id="result-card">
@@ -857,7 +1066,47 @@
 
     </div>
 
+    <!-- Camera QR Scanner Modal -->
+    <div class="cam-modal-overlay" id="cam-modal-overlay">
+        <div class="cam-modal">
+            <div class="cam-modal-header">
+                <div class="cam-modal-title">
+                    <i class="fa-solid fa-camera"></i> Camera QR Scanner
+                </div>
+                <button class="cam-close-btn" onclick="closeCameraScanner()" title="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="cam-viewport-wrap">
+                <video id="cam-video" autoplay muted playsinline></video>
+                <canvas id="cam-canvas"></canvas>
+
+                <!-- Animated scan-line overlay -->
+                <div class="cam-scanline"></div>
+
+                <!-- Corner brackets -->
+                <div class="cam-corner tl"></div>
+                <div class="cam-corner tr"></div>
+                <div class="cam-corner bl"></div>
+                <div class="cam-corner br"></div>
+            </div>
+
+            <div class="cam-status scanning" id="cam-status-text">
+                <i class="fa-solid fa-circle-notch fa-spin" style="margin-right:0.35rem;"></i> Initializing camera...
+            </div>
+
+            <div class="cam-tip">
+                <i class="fa-solid fa-lightbulb" style="color:#a78bfa;"></i>
+                Point your camera at a QR code or barcode to scan
+            </div>
+        </div>
+    </div>
+
     <!-- JavaScript Logic for Hardware Scanner & Audio Synthesis -->
+    <!-- jsQR Library (camera QR decoding) -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+
     <script>
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         const scannerInput = document.getElementById('scanner-input');
@@ -1290,6 +1539,108 @@
             }, 2500);
         }
 
+        // ─── Camera Scanner Logic ──────────────────────────────────────────────
+        let camStream        = null;
+        let camAnimFrame     = null;
+        let camCooldown      = false;
+        let camScannedOnce   = false;
+
+        const camOverlay    = document.getElementById('cam-modal-overlay');
+        const camVideo      = document.getElementById('cam-video');
+        const camCanvas     = document.getElementById('cam-canvas');
+        const camStatusText = document.getElementById('cam-status-text');
+
+        function openCameraScanner() {
+            camOverlay.classList.add('open');
+            camScannedOnce = false;
+            startCamStream();
+        }
+
+        function closeCameraScanner() {
+            camOverlay.classList.remove('open');
+            stopCamStream();
+        }
+
+        // Close modal on overlay backdrop click
+        camOverlay.addEventListener('click', function (e) {
+            if (e.target === camOverlay) closeCameraScanner();
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && camOverlay.classList.contains('open')) {
+                closeCameraScanner();
+            }
+        });
+
+        async function startCamStream() {
+            camStatusText.className = 'cam-status scanning';
+            camStatusText.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="margin-right:0.35rem;"></i> Initializing camera...';
+
+            try {
+                camStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 1280 } }
+                });
+                camVideo.srcObject = camStream;
+                await camVideo.play();
+                camStatusText.className = 'cam-status scanning';
+                camStatusText.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="margin-right:0.35rem;"></i> Scanning for QR / barcode...';
+                requestAnimationFrame(tickCamScan);
+            } catch (err) {
+                camStatusText.className = 'cam-status error';
+                if (err.name === 'NotAllowedError') {
+                    camStatusText.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:0.35rem;"></i> Camera access denied. Please allow camera permission.';
+                } else {
+                    camStatusText.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:0.35rem;"></i> Camera unavailable: ' + err.message;
+                }
+            }
+        }
+
+        function stopCamStream() {
+            if (camAnimFrame) { cancelAnimationFrame(camAnimFrame); camAnimFrame = null; }
+            if (camStream)    { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+            camVideo.srcObject = null;
+        }
+
+        function tickCamScan() {
+            // Only scan when video is playing and not in cooldown
+            if (!camCooldown && camVideo.readyState === camVideo.HAVE_ENOUGH_DATA) {
+                const ctx = camCanvas.getContext('2d');
+                camCanvas.width  = camVideo.videoWidth;
+                camCanvas.height = camVideo.videoHeight;
+                ctx.drawImage(camVideo, 0, 0, camCanvas.width, camCanvas.height);
+
+                const imageData = ctx.getImageData(0, 0, camCanvas.width, camCanvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: 'dontInvert'
+                });
+
+                if (code && code.data && code.data.trim().length > 0) {
+                    handleCamScanResult(code.data.trim());
+                    return; // stop loop during cooldown
+                }
+            }
+            camAnimFrame = requestAnimationFrame(tickCamScan);
+        }
+
+        function handleCamScanResult(value) {
+            camCooldown = true;
+
+            // Visual feedback in modal
+            camStatusText.className = 'cam-status success';
+            camStatusText.innerHTML = `<i class="fa-solid fa-check-circle" style="margin-right:0.35rem;"></i> Scanned: "${value}" — processing...`;
+
+            // Close modal and process scan using the existing processScan function
+            setTimeout(() => {
+                closeCameraScanner();
+                if (!isProcessing) {
+                    processScan(value);
+                }
+                // Reset cooldown after processing window
+                setTimeout(() => { camCooldown = false; }, 3000);
+            }, 600);
+        }
+        // ──────────────────────────────────────────────────────────────────────
     </script>
 </body>
 </html>
