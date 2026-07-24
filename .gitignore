@@ -3,6 +3,8 @@
 .env
 .env.backup
 .env.production
+.env.key
+# .env.encrypted is intentionally NOT ignored — it is safe to commit
 .phpactor.json
 .phpunit.result.cache
 /.fleet
